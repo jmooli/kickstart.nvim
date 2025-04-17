@@ -110,6 +110,10 @@ vim.opt.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
 
+vim.opt.tabstop = 4        -- Number of visual spaces per TAB
+vim.opt.shiftwidth = 4     -- Number of spaces used for indentation
+vim.opt.expandtab = true   -- Use spaces instead of tabs
+
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -188,6 +192,15 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+-- Move lines up and down with Alt + j/k
+vim.keymap.set("n", "<A-j>", ":m .+1<CR>==", { desc = "Move line down" })
+vim.keymap.set("n", "<A-k>", ":m .-2<CR>==", { desc = "Move line up" })
+vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
+vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
+
+
+
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -339,6 +352,16 @@ require('lazy').setup({
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
+  {
+    'numToStr/Comment.nvim',
+    opts = {},
+    lazy = false,
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    opts = {},
+  },
+  
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -857,12 +880,36 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      --  COMMENTED OUT
+      --vim.cmd.colorscheme 'tokyonight-night'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
   },
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    priority = 1000,
+  },
+  {
+    "rebelot/kanagawa.nvim",
+    name = "kanagawa",
+    priority = 1000,
+  },
+  {
+    "ellisonleao/gruvbox.nvim",
+    name = "gruvbox",
+    priority = 1000,
+  },
+  {
+    "max397574/better-escape.nvim",
+    opts = {
+      mapping = { "jk", "jj" }, -- Keys you press
+      timeout = 300,            -- Time within which to press
+    }
+  },
+
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -940,11 +987,11 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+   require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
+   require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
@@ -977,6 +1024,27 @@ require('lazy').setup({
     },
   },
 })
+
+local themes = { "gruvbox", "catppuccin-frappe", "kanagawa-wave", "tokyonight-night" }
+local current_theme = 1
+
+vim.keymap.set("n", "<leader>tc", function()
+  current_theme = current_theme % #themes + 1
+  vim.cmd("colorscheme " .. themes[current_theme])
+  print("Theme: " .. themes[current_theme])
+end, { desc = "Toggle [T]heme [C]olorscheme" })
+
+-- Optionally set the first one as your default:
+vim.cmd.colorscheme(themes[current_theme])
+
+vim.api.nvim_set_hl(0, "IndentBlanklineChar", { fg = "#303030", nocombine = true })
+
+vim.api.nvim_create_user_command('Build', function()
+  vim.cmd('!build.bat')
+end, {})
+
+vim.keymap.set('n', '<leader>b', ':Build<CR>', { desc = 'Run build.bat' })
+
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
